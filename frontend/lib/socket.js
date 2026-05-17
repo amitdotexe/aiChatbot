@@ -4,7 +4,7 @@ let socket = null;
 
 export function getSocket() {
   if (!socket) {
-    socket = io("http://localhost:3000", {
+    socket = io("https://aichatbot-1a16.onrender.com", {
       withCredentials: true,
       autoConnect: false,
       transports: ["websocket"],
