@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: "none",
   maxAge: 60 * 60 * 1000, // 1 hour — matches the JWT expiry
 };
 
