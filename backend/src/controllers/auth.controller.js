@@ -2,14 +2,13 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Cookie options centralised so both register and login stay consistent.
-// httpOnly prevents client-side JS from reading the token (XSS protection).
-// sameSite: "strict" blocks the cookie from being sent on cross-site requests.
+const isProduction = process.env.NODE_ENV === "production";
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "none",
-  maxAge: 60 * 60 * 1000, // 1 hour — matches the JWT expiry
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 60 * 60 * 1000,
 };
 
 async function register(req, res) {

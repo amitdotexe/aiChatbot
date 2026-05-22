@@ -9,7 +9,7 @@ const messageModel = require("../models/message.model");
 function initSocketServer(httpServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_ORIGIN || "*",
+      origin: process.env.CLIENT_ORIGIN,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -87,19 +87,12 @@ function initSocketServer(httpServer) {
               role: item.role,
               parts: [{ text: item.content }],
             })),
+            (chunk) => {
+              socket.emit("ai-response", chunk);
+            },
           );
         } catch (err) {
           return socket.emit("ai-error", "AI service unavailable");
-        }
-
-        console.log(aiResponse);
-
-        if (aiResponse) {
-          const chars = aiResponse.split("");
-          for (const char of chars) {
-            await new Promise((resolve) => setTimeout(resolve, 30));
-            socket.emit("ai-response", char);
-          }
         }
 
         socket.emit("ai-response-end");

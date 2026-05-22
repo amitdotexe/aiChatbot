@@ -19,6 +19,8 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loadingChats, setLoadingChats] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const bottomRef = useRef(null);
   const socketRef = useRef(null);
   const streamBufferRef = useRef("");
@@ -26,19 +28,30 @@ export default function ChatPage() {
   const animFrameRef = useRef(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     (async () => {
       try {
         const res = await getChats();
-        setChats(res.data.chats ?? []);
+        if (isMounted) {
+          setChats(res.data.chats ?? []);
+          setIsAuthenticated(true);
+        }
       } catch {
         router.push("/signup_login");
       } finally {
-        setLoadingChats(false);
+        if (isMounted) setLoadingChats(false);
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const socket = getSocket();
     socketRef.current = socket;
     socket.connect();
@@ -47,6 +60,8 @@ export default function ChatPage() {
 
     socket.on("ai-response", (char) => {
       streamBufferRef.current += char;
+      displayRef.current += char;
+      setStreamingText(displayRef.current); // update UI immediately
     });
 
     socket.on("ai-response-end", () => {
@@ -54,30 +69,17 @@ export default function ChatPage() {
       const fullText = streamBufferRef.current;
       streamBufferRef.current = "";
       displayRef.current = "";
-      const words = fullText.split(" ");
-      let i = 0;
-      const tick = () => {
-        if (i < words.length) {
-          displayRef.current += (i === 0 ? "" : " ") + words[i];
-          i++;
-          setStreamingText(displayRef.current);
-          animFrameRef.current = requestAnimationFrame(tick);
-        } else {
-          setIsStreaming(false);
-          setStreamingText("");
-          setMessages((prev) => [
-            ...prev,
-            {
-              _id: Date.now().toString(),
-              role: "model",
-              content: fullText,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
-          displayRef.current = "";
-        }
-      };
-      animFrameRef.current = requestAnimationFrame(tick);
+      setIsStreaming(false);
+      setStreamingText("");
+      setMessages((prev) => [
+        ...prev,
+        {
+          _id: Date.now().toString(),
+          role: "model",
+          content: fullText,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
     });
 
     socket.on("ai-error", () => {
@@ -90,7 +92,7 @@ export default function ChatPage() {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       disconnectSocket();
     };
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -146,7 +148,6 @@ export default function ChatPage() {
     [activeChatId, isStreaming],
   );
 
-  // Send from empty state (creates chat first if none active)
   const handleEmptySend = useCallback(
     async (text) => {
       if (!text.trim() || isStreaming) return;

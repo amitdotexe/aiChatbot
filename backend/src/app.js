@@ -11,7 +11,7 @@ const app = express();
 // app object has already been created — registering it there has no effect.
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "*",
+    origin: process.env.CLIENT_ORIGIN,
     credentials: true,
   }),
 );
