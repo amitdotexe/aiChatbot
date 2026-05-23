@@ -4,8 +4,9 @@ let socket = null;
 
 export function getSocket() {
   if (!socket) {
-    const token = localStorage.getItem("token");
-    socket = io("https://aichatbot-1a16.onrender.com/api", {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    socket = io("https://aichatbot-1a16.onrender.com", {
       auth: { token },
       withCredentials: true,
       autoConnect: false,
