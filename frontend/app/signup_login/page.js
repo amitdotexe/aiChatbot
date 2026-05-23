@@ -60,17 +60,39 @@ export default function AuthPage() {
     try {
       if (mode === "login") {
         const res = await login({ email: form.email, password: form.password });
-        localStorage.setItem("token", res.data.token);
+        console.log("LOGIN RESPONSE:", res.data);
+        const token = res.data.token;
+        if (!token) {
+          setError("No token received from server");
+          return;
+        }
+        localStorage.setItem("token", token);
+        console.log("TOKEN SAVED:", localStorage.getItem("token"));
       } else {
         const res = await register({
           fullName: { firstName: form.firstName, lastName: form.lastName },
           email: form.email,
           password: form.password,
         });
-        localStorage.setItem("token", res.data.token);
+        console.log("REGISTER RESPONSE:", res.data);
+        const token = res.data.token;
+        if (!token) {
+          setError("No token received from server");
+          return;
+        }
+        localStorage.setItem("token", token);
+        console.log("TOKEN SAVED:", localStorage.getItem("token"));
       }
+
+      const saved = localStorage.getItem("token");
+      if (!saved) {
+        setError("Failed to save token, please try again");
+        return;
+      }
+
       router.push("/chat");
     } catch (err) {
+      console.log("AUTH ERROR:", err.response?.status, err.response?.data);
       setError(
         err.response?.data?.message ||
           (mode === "login" ? "Sign in failed" : "Registration failed"),
