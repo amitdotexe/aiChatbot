@@ -4,8 +4,8 @@ let socket = null;
 
 export function getSocket() {
   if (!socket) {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    console.log("SOCKET INIT WITH TOKEN:", token);
     socket = io("https://aichatbot-1a16.onrender.com", {
       auth: { token },
       withCredentials: true,
@@ -19,6 +19,6 @@ export function getSocket() {
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
-    socket = null;
+    socket = null; 
   }
 }
