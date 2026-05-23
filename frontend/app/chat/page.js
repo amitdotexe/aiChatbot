@@ -28,19 +28,18 @@ export default function ChatPage() {
   const animFrameRef = useRef(null);
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  (async () => {
-    try {
-      const token = localStorage.getItem("token");
-      console.log("TOKEN BEFORE GETCHATS:", token);
-      const res = await getChats();
-      console.log("GETCHATS RESPONSE:", res.data);
-      
+    (async () => {
+      try {
+        const res = await getChats();
+        if (isMounted) {
+          setChats(res.data.chats ?? []);
+          setIsAuthenticated(true);
+        }
       } catch (err) {
-      console.log("GETCHATS ERROR:", err.response?.status, err.response?.data);
-      router.push("/signup_login");
-    
+        console.log("GETCHATS ERROR:", err.response?.status, err.response?.data);
+        router.push("/signup_login");
       } finally {
         if (isMounted) setLoadingChats(false);
       }
@@ -58,12 +57,19 @@ export default function ChatPage() {
     socketRef.current = socket;
     socket.connect();
 
-    socket.on("connect_error", () => router.push("/signup_login"));
+    socket.on("connect", () => {
+      console.log("SOCKET CONNECTED:", socket.id);
+    });
 
-    socket.on("ai-response", (char) => {
-      streamBufferRef.current += char;
-      displayRef.current += char;
-      setStreamingText(displayRef.current); // update UI immediately
+    socket.on("connect_error", (err) => {
+      console.log("SOCKET CONNECT ERROR:", err.message);
+      router.push("/signup_login");
+    });
+
+    socket.on("ai-response", (chunk) => {
+      streamBufferRef.current += chunk;
+      displayRef.current += chunk;
+      setStreamingText(displayRef.current);
     });
 
     socket.on("ai-response-end", () => {
@@ -84,7 +90,8 @@ export default function ChatPage() {
       ]);
     });
 
-    socket.on("ai-error", () => {
+    socket.on("ai-error", (err) => {
+      console.log("AI ERROR:", err);
       setIsStreaming(false);
       setStreamingText("");
       streamBufferRef.current = "";
@@ -201,7 +208,6 @@ export default function ChatPage() {
       />
 
       <main className={`${s.main} ${!sidebarOpen ? s.mainFull : ""}`}>
-        {/* Top bar */}
         <header className={s.topbar}>
           <button
             className={s.menuBtn}
@@ -224,7 +230,6 @@ export default function ChatPage() {
           )}
         </header>
 
-        {/* Empty / welcome state */}
         {!hasMessages && !loadingMessages && (
           <div className={s.welcomeWrap}>
             <h1 className={s.welcomeHeading}>What's on your mind?</h1>
@@ -237,7 +242,6 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Chat view */}
         {(hasMessages || loadingMessages) && (
           <>
             <div className={s.messageArea}>
