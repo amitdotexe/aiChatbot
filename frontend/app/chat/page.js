@@ -28,17 +28,19 @@ export default function ChatPage() {
   const animFrameRef = useRef(null);
 
   useEffect(() => {
-    let isMounted = true;
+  let isMounted = true;
 
-    (async () => {
-      try {
-        const res = await getChats();
-        if (isMounted) {
-          setChats(res.data.chats ?? []);
-          setIsAuthenticated(true);
-        }
-      } catch {
-        router.push("/signup_login");
+  (async () => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("TOKEN BEFORE GETCHATS:", token);
+      const res = await getChats();
+      console.log("GETCHATS RESPONSE:", res.data);
+      
+      } catch (err) {
+      console.log("GETCHATS ERROR:", err.response?.status, err.response?.data);
+      router.push("/signup_login");
+    
       } finally {
         if (isMounted) setLoadingChats(false);
       }
