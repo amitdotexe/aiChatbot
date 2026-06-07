@@ -161,7 +161,7 @@ export default function Sidebar({
               />
               <circle cx="16" cy="16" r="5" fill="currentColor" opacity="0.7" />
             </svg>
-            <span>একশো চৌদা</span>
+            <span>TARS</span>
           </div>
         </div>
       </aside>
