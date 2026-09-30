@@ -20,7 +20,7 @@ app.use(cookieParser());
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("Welcome to the GPT Clone API");
+  res.send("Welcome to TARS");
 });
 
 app.use("/api/auth", authRoute);
